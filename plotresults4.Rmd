@@ -1,0 +1,68 @@
+---
+title: "results"
+author: "Alan Min"
+date: "7/27/2020"
+output: html_document
+---
+
+This document modifies the plot from 20_11_03 to split into 3 plots. Then the reason taht this file is plotresults4 is that I'm switching to using facet_grid??????
+
+```{r}
+get_legend<-function(myggplot){
+  tmp <- ggplot_gtable(ggplot_build(myggplot))
+  leg <- which(sapply(tmp$grobs, function(x) x$name) == "guide-box")
+  legend <- tmp$grobs[[leg]]
+  return(legend)
+}
+```
+
+
+```{r fig.width=12, fig.height = 4}
+library(tidyverse)
+library(gridExtra)
+library(cowplot)
+knitr::opts_chunk$set(echo=FALSE, warning=FALSE, message=FALSE)
+
+load("~/Documents/UW Documents/gcta_proj/Scripts/21_05_11__redo_big_sim/june1results.Rda")
+results = df
+results$names = recode(results$names, elizabeth_no_diag = "HE", elizabeth_diag = "HE2", ldak1 = "ldak")
+results = results %>% filter(names != "R_maxlike" & names != "schwartzman" & names != "HE2" & names != "ldak2")
+results$result_hsq = Re(results$result_hsq)
+results$sigmae = Re(results$sigmae)
+results$sigmag = Re(results$sigmag)
+results$np = paste(results$n, results$p)
+results$np[results$np == "1000 200"] = "(i)"
+results$np[results$np == "200 1000"] = "(ii)"
+results$np[results$np == "200 3000"] = "(iii)"
+results$np[results$np == "2000 1000"] = "(iv)"
+
+l_hsq = list()
+var = "result_hsq"
+yaxis_hsq = c(.4, 1.2)
+yaxis_mse = c(0, .5)
+yline = .8
+width = 10
+height = 5
+colorscheme = c("#F8766D", "#BB9D00", "#00B81F", "#000000", "#00A5FF", "#E76BF3") #Instead of #000000 it was "#00C0B8"
+colorscheme = setNames(colorscheme, c( "HE", "dicker1", "dicker2", "gcta", "ldak", "gold_standard"))
+
+for(cur_structure in c("autocorrelation", "block", "repeat")) {
+	#Make H_hsq plot
+	plot_data = results %>% filter(structure == cur_structure) %>% mutate(names = factor(names, levels = c("HE", "dicker1", "dicker2", "gcta", "ldak", "gold_standard")))
+	g1 = ggplot(plot_data) + geom_boxplot(aes_string(x = "as.factor(param)", y = var, col = "names"), na.rm=TRUE) + geom_hline(yintercept = yline) + facet_grid(cols=vars(np)) + ylab("Heritability")
+	g1 =  g1 + theme(legend.position="none", title = element_text(size = 8, hjust = .5), plot.title = element_text(hjust = 0.5), axis.title.x = element_blank(), strip.background = element_blank(), axis.text.x = element_blank(), axis.ticks.x = element_blank()) + coord_cartesian(ylim = yaxis_hsq) + scale_color_manual(values = colorscheme, drop = T)
+	
+	#Make MSE Plot
+	plot_data = results %>%
+		filter(structure == cur_structure) %>%
+		mutate(names = factor(names, levels = c("HE", "dicker1", "dicker2", "gcta", "ldak", "gold_standard"))) %>%
+		group_by(names, param, np) %>%
+		summarise(mse = sqrt(sum((result_hsq - .8)^2)/length(result_hsq)), .groups = "keep")
+	g2 = ggplot(plot_data) + geom_line(aes_string(x = "as.factor(param)", y = "mse", col = "names", group = "names")) + facet_grid(cols=vars(np)) + ylab("MSE")
+	g2 =  g2 + theme(legend.position="none", title = element_text(size = 8, hjust = .5), plot.title = element_text(hjust = 0.5), axis.title.x = element_blank(), strip.background = element_blank(), strip.text.x = element_blank()) + coord_cartesian(ylim = yaxis_mse) + scale_color_manual(values = colorscheme, drop = T) 
+	
+	plot_grid(g1, g2, ncol = 1, rel_heights = c(4.2/4, 1))
+	ggsave(paste(cur_structure, ".pdf", sep = ""), width = width, height = height)
+}
+```
+
