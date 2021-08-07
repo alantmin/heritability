@@ -13,6 +13,7 @@ repeat_proportion = .1
 hsq = .8
 clean_up = T
 
+#Create a list of different parameters to enter into analysis
 n_vec = rep(0, 80000)
 p_vec = rep(0, 80000)
 iteration_vec = rep(0, 80000)

@@ -1,5 +1,14 @@
-#Creates a MAP file for PLINK
-#By default, says every marker is from the chromosome 1, rsnumber is just the index, genetic distance is uniform from 0 to 1, base pair position is also just the index, and reference allele is always A, alternate allele is always T. 
+# Function that creates a MAP file for PLINK
+# @param chr: Either an integer or a vector of the chromosome
+#	By default, every marker is from the chromosome 1
+# @param rsnumber: the index of the marker
+# @param genetic_distance: genetic distance. By default,
+# 	this is set to be uniform from 0 to 1
+# @param b_p_pos: Base pair position is also just the index
+# @param ref_allele: Reference nucleotides at each position.  
+#	By default, reference allele is always A.
+# @param alt_allele: Alternate allele at each position.
+#	By default, the alternate allele is always T
 get_samp_markers = function(n_marker, chr = NULL, rs_number = NULL, genetic_distance = NULL, bp_pos = NULL, ref_allele = NULL, alt_allele = NULL) {
 	#Set parameters to defaults if they are not specified 
 	if(is.null(chr)) {
@@ -37,14 +46,22 @@ number_to_letter = function(genotype_row, ref_allele, alt_allele) {
 	return(mat)
 }
 
-#Creates the ped file for GCTA to use.
-#Genotypes is a matrix with n_indiv rows and n_marker columns.
-#Phenotypes is a vector with n_indiv entries corresponding the the phenotypes of each of the individuals
-#Samp_markers is the MAP file format from PLINK. 
-#Each individual is assumed to be in their own family unless otherwise specified
-#Letter_genotype_fn: A file name for the letter genotypes. If NULL, just make a new one. Letter genotypes means it's in the format A A T T, etc.
-#Save_letter_genotype: A file name to save the letter genotypes to. If NULL, do not save. This option only matters if letter_genotype_fn is NULL
-#Every individual is assumed to be male unless otherwise specified
+# Function that creates the ped file for GCTA to use.
+# @param genotypes: a genotype matrix with n_indiv rows
+#	and n_marker columns.
+# @param phenotypes: a vector with n_indiv entries
+#	corresponding the the phenotypes of each of the individuals
+# @param samp_markers: the MAP file format from PLINK. 
+# @param fam_id: Id numbers for the families. Each individual
+#	is assumed to be in their own family unless otherwise specified
+# @param letter_genotype_fn: A file name for the letter genotypes.
+#	If NULL, just make a new one. Letter genotypes means it's
+#	in the format A A T T, etc.
+# @param save_letter_genotype: A file name to save the letter 
+#	genotypes to. If NULL, do not save. This option only matters
+#	if letter_genotype_fn is NULL
+# @param sex: Sex of each individual. Every individual is assumed
+#	to be male unless otherwise specified
 get_ped_file = function(genotypes, phenotypes, samp_markers, fam_id = NULL, indiv_id = NULL, pat_id = NULL, mat_id = NULL, sex = NULL, letter_genotype_fn = NULL, save_letter_genotype = NULL) {
 	#Count number of individuals and markers
 	n_indiv = nrow(genotypes)
@@ -99,12 +116,17 @@ get_phen_file = function(phenotypes) {
 	return(phen_df)	
 }
 
-#Function to run the GCTA program, given a genotype matrix. 
-#genotypes: Genotype matrix should have each row as an individual and each column as a marker. Should consist of integer values 0, 1, or 2. 
-#samp_markers: a matrix with information about each marker
-#new_ped: if true, creates a new ped from scratch. If false, use the letter genotypes from a previous run.
-#plink_fn = a file name to write the samp_markers (MAP file) and the ped file to (should not have a file extension)
-#new_samp_markers: if true, creates a new sample marker file. Otherwise doesn't do anything with the samp markers argument.
+# Function to run the GCTA program, given a genotype matrix. 
+# @param genotypes: Genotype matrix should have each row as
+#	an individual and each column as a marker. Should consist of 
+#	integer values 0, 1, or 2. 
+# @param samp_markers: a matrix with information about each marker
+# @param new_ped: if true, creates a new ped from scratch.
+#	If false, use the letter genotypes from a previous run.
+# @param plink_fn: a file name to write the samp_markers (MAP file)
+#	and the ped file to (should not have a file extension)
+#new_samp_markers: if true, creates a new sample marker file.
+#	Otherwise doesn't do anything with the samp markers argument.
 run_gcta = function(genotypes, phenotypes, samp_markers, plink_fn, new_ped = T) {
 	ped_fn = paste(plink_fn, ".ped", sep = "")
 	samp_markers_fn = paste(plink_fn, ".map", sep = "")
@@ -136,6 +158,8 @@ run_gcta = function(genotypes, phenotypes, samp_markers, plink_fn, new_ped = T) 
 	system(paste("gcta64 --grm ", plink_fn, " --pheno ", phen_fn, " --reml --out test"))
 }
 
+# Function that cleans up a folder 
+# @param file_name: cleans all files in this folder
 clean_dir = function(file_name) {
 	rm_list = paste(file_name, c(".bed", ".bim", ".fam", ".grm.bin", ".grm.id", ".grim.N.bin", ".hsq", ".log", ".map", ".ped", ".phen"), sep = "")
 	for (r in rm_list) {
@@ -143,7 +167,12 @@ clean_dir = function(file_name) {
 	}
 }
 
-#Generate phenotypes with a particular heritability. Takes non-normalized genotypes and returns normalized genotypes. 
+# Function that generates phenotypes with a particular heritability.
+# @param genotypes: non-normalized genotype matrix.
+# @param hsq: true heritability that you want to simulate
+# @value: returns a list with phenotypes and true phenotypes
+#	phenotypes include the error term from sigma_e^2
+#	true phenotypes do not have sigma_e^2
 get_phenotypes = function(genotypes, hsq) {
 	n_indiv = nrow(genotypes)
 	n_marker = ncol(genotypes)
@@ -167,6 +196,9 @@ get_phenotypes = function(genotypes, hsq) {
 	return(l)
 }
 
+# Function that normalizes the genotypes
+# @param genotypes: a matrix with genotypes to be normalized
+# @value: returns a normalized genotype matrix
 normalize_genotypes = function(genotypes) {
 	n_indiv = nrow(genotypes)
 	n_marker = ncol(genotypes)
@@ -182,13 +214,15 @@ normalize_genotypes = function(genotypes) {
 	return(genotypes_normalized)
 }
 
-#Function to generate genotypes
-#n_indiv is how many individuals to generate
-#n_markers is how many markers to generate
-#by default generates markers with frequency p=.2. 
-#repeat_subset: how many markers are being repeated
-#repeat_num: how many times repeat_subset is being repeated
-#Returns a list with $genotypes being the original genotypes and $genotypes_rep being the repeated genotypes. 
+# Function to generate genotypes
+# @param n_indiv: how many individuals to generate
+# @param n_markers: how many markers to generate
+# @param repeat_subset: how many markers are being repeated
+# @param repeat_num: how many times repeat_subset is being repeated
+# @param mafs: a vector or number of the minor allele frequency
+#	by default generates markers with frequency p=.2. 
+# @value: Returns a list with $genotypes being the original
+#	genotypes and $genotypes_rep being the repeated genotypes. 
 get_genotypes = function(n_indiv, n_markers, repeat_subset, repeat_num, mafs = NULL) {
 	if(is.null(mafs)) {
 		genotypes = matrix(rbinom(n_indiv * n_markers, size = 2, prob = .2), nrow = n_indiv, ncol = n_markers)

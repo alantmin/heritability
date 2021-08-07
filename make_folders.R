@@ -14,6 +14,7 @@ repeat_proportion = .1
 hsq = .8
 clean_up = T
 
+#Create a list of parameters for analyses
 n_vec = c()
 p_vec = c()
 structure_vec = c()

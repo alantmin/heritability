@@ -2,10 +2,18 @@ library(expm)
 library(reticulate)
 library(qgg)
 
+# Function that returns the L2 norm of a vector
+# @param x: a vector
+# @value: the l2 norm of x
 l2normsq = function(x) {
 	return(sum(x ^ 2))	
 }
 
+# Function that implements the dicker-2 estimator
+# @param X: a genotype matrix with d columns and n rows, where d 
+#   is the number of markers and n is the number of individuals
+# @value: returns a vector of the estimate of H^2, tau2, and sigma^2
+#	in that order.
 dicker_2014_estimator_2 = function(X, y) {
 	d = ncol(X) #Number of markers
 	n = nrow(X) #Number of individuals
@@ -29,7 +37,14 @@ dicker_2014_estimator_2 = function(X, y) {
 	return(c(hsq_est, tautilde2, sigmatilde2))
 }
 
-
+# Function that implements the dicker-2 estimator but also normalizes
+#	genotypes by standard deviation
+# @param X: a genotype matrix with d columns and n rows, where d 
+#   is the number of markers and n is the number of individuals
+# @param y: a vector of phenotypes corresponding to phenotypes
+# 	of each individual in genotypes
+# @value: returns a vector of the estimate of H^2, tau2, and sigma^2
+#	in that order.
 dicker_2014_estimator_2_sd = function(X, y) {
 	d = ncol(X) #Number of markers
 	n = nrow(X) #Number of individuals
@@ -53,6 +68,13 @@ dicker_2014_estimator_2_sd = function(X, y) {
 	return(c(hsq_est, tautilde2, sigmatilde2))
 }
 
+# Function that implements the dicker-1 estimator
+# @param genotypes: a genotype matrix with d columns and n rows, where d 
+#   is the number of markers and n is the number of individuals
+# @param phenotypes: a vector of phenotypes corresponding to phenotypes
+# 	of each individual in genotypes
+# @value: returns a vector of the estimate of H^2, tau2, and sigma^2
+#	in that order.
 dicker_2014_estimator_1 = function(genotypes, phenotypes) {
 	#Make some values
 	n = nrow(genotypes)
@@ -82,6 +104,13 @@ dicker_2014_estimator_1 = function(genotypes, phenotypes) {
 	return(c(hsq_est, tau, sigma))
 }
 
+# Function that implements the dicker-1 estimator
+# @param genotypes: a genotype matrix with d columns and n rows, where d 
+#   is the number of markers and n is the number of individuals
+# @param phenotypes: a vector of phenotypes corresponding to phenotypes
+# 	of each individual in genotypes
+# @value: returns a vector of the estimate of H^2, tau2, and sigma^2
+#	in that order.
 dicker_2014_estimator_1_sd = function(genotypes, phenotypes) {
 	#Make some values
 	n = nrow(genotypes)
@@ -111,6 +140,13 @@ dicker_2014_estimator_1_sd = function(genotypes, phenotypes) {
 	return(c(hsq_est, tau, sigma))
 }
 
+# Function that implements the schwartzman estimator
+# @param genotypes: a genotype matrix with d columns and n rows, where d 
+#   is the number of markers and n is the number of individuals
+# @param phenotypes: a vector of phenotypes corresponding to phenotypes
+# 	of each individual in genotypes
+# @value: returns a vector of the estimate of H^2, tau2, and sigma^2
+#	in that order.
 schwartzman_2019_estimator = function(genotypes, phenotypes) {
 	n_marker = ncol(genotypes)
 	n_indiv = nrow(genotypes)
@@ -142,7 +178,13 @@ schwartzman_2019_estimator = function(genotypes, phenotypes) {
 	return(hsq_est = n_marker / n_indiv / mu2 * (s2 - 1))
 }
 
-#Returns (hsq, sigma_g^2, sigma_e^2)
+# Function that implements the HE estimator
+# @param genotypes: a genotype matrix with d columns and n rows, where d 
+#   is the number of markers and n is the number of individuals
+# @param phenotypes: a vector of phenotypes corresponding to phenotypes
+# 	of each individual in genotypes
+# @value: returns a vector of the estimate of H^2, sigmag^2, and sigmae^2
+#	in that order.
 elizabeth_MoM_no_diag = function(genotypes, phenotypes) {
 	n_marker = ncol(genotypes)
 	n_indiv = nrow(genotypes)
@@ -167,7 +209,13 @@ elizabeth_MoM_no_diag = function(genotypes, phenotypes) {
 	return(c(hsq_est, sigma_g, sigma_y - sigma_g))
 }
 
-#Returns (hsq, sigma_g^2, sigma_e^2)
+# Function that implements the HE estimator including the diagonal
+# @param genotypes: a genotype matrix with d columns and n rows, where d 
+#   is the number of markers and n is the number of individuals
+# @param phenotypes: a vector of phenotypes corresponding to phenotypes
+# 	of each individual in genotypes
+# @value: returns a vector of the estimate of H^2, sigmag^2, and sigmae^2
+#	in that order.
 elizabeth_MoM_diag = function(genotypes, phenotypes) {
 	n_marker = ncol(genotypes)
 	n_indiv = nrow(genotypes)
@@ -196,23 +244,13 @@ elizabeth_MoM_diag = function(genotypes, phenotypes) {
 	return(c(hsq_est, sigma_g, sigma_e))
 }
 
-#Returns (hsq, sigma_g^2, sigma_e^2)
-max_like_R = function(genotypes, phenotypes) {
-	source_python("~/Documents/UW Documents/gcta_proj/Scripts/20_06_24_Estimators/max_like.py")
-	res = max_like(g$genotypes, p$phenotypes)
-	#The python code returns the estimate for sigma_g^2 in res[1] and 
-	#the estimate for sigma_e^2 in res[2]
-	hsq_est = res[1] / (res[1] + res[2])
-	return(c(hsq_est, res[1], res[2]))
-}
-
-max_like_greml = function(genotypes, phenotypes) {
-	genotypes = normalize_genotypes(genotypes)
-	grm = genotypes %*% t(genotypes) / ncol(genotypes)
-	g = greml(y = phenotypes, X = rep(1, nrow(genotypes)), GRM = list(grm))
-	return(c(g$theta[1]/(g$theta[2] + g$theta[1]), g$theta[1], g$theta[2]))
-}
-
+# Function that runs LDAK on a folder, after all files have already
+# 	been placed in the folder. Requires first running the .ped files, 
+#	writing them to a table, as well as the .map, .phen, and .bed files
+# @param filepath: A string that is the file path to where the data files
+#	are stored.
+# @power: the alpha parameter for LDAK
+# @value: returns a single value for heritability
 ldak = function(filepath, power = -.25) {
 	cur_wd = getwd()
 	setwd(filepath)
@@ -228,6 +266,12 @@ ldak = function(filepath, power = -.25) {
 	return(herit)
 }
 
+# Function that runs GCTA on a folder, after all files have already
+# 	been placed in the folder. Requires first running the .ped files, 
+#	writing them to a table, as well as the .map, .phen, and .bed files
+# @param filepath: A string that is the file path to where the data files
+#	are stored.
+# @value: returns a single value for heritability 
 gcta = function(filepath) {
 	cur_wd = getwd()
 	setwd(filepath)
