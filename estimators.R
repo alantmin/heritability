@@ -9,34 +9,6 @@ l2normsq = function(x) {
 	return(sum(x ^ 2))	
 }
 
-# Function that implements the dicker-2 estimator
-# @param X: a genotype matrix with d columns and n rows, where d 
-#   is the number of markers and n is the number of individuals
-# @value: returns a vector of the estimate of H^2, tau2, and sigma^2
-#	in that order.
-dicker_2014_estimator_2 = function(X, y) {
-	d = ncol(X) #Number of markers
-	n = nrow(X) #Number of individuals
-	if(n != length(y)) {
-		stop("Error in dicker2014_version2: phenotype length doesn't match genotype dim")
-	}
-	#Center X
-	gw = apply(X, 2, function(x) return((x - mean(x))))
-	
-	y = y - mean(y)
-	
-	xtx = t(gw) %*% gw
-	m1 = 1/d * sum(diag(1/n * xtx))
-	m2 = 1/d * sum(diag( t(1/n * xtx) %*% (1/n * xtx))) -
-		1/(d*n) * (sum(diag(1/n * xtx)) ^2 )
-	sigmatilde2 = (1 + d * m1^2 / ((n+1) * m2)) * 1/n * sum(y^2) -
-		m1/(n*(n+1)*m2)*sum((t(gw) %*% y)^2)
-	tautilde2 = -d * m1^2/(n*(n+1)*m2) * sum(y^2) +
-		m1/(n*(n+1)*m2) * sum((t(gw) %*% y)^2)
-	hsq_est = tautilde2 / (sigmatilde2 + tautilde2)
-	return(c(hsq_est, tautilde2, sigmatilde2))
-}
-
 # Function that implements the dicker-2 estimator but also normalizes
 #	genotypes by standard deviation
 # @param X: a genotype matrix with d columns and n rows, where d 
@@ -56,6 +28,7 @@ dicker_2014_estimator_2_sd = function(X, y) {
 	
 	y = y - mean(y)
 	
+	# Return the estimator from Dicker 2014
 	xtx = t(gw) %*% gw
 	m1 = 1/d * sum(diag(1/n * xtx))
 	m2 = 1/d * sum(diag( t(1/n * xtx) %*% (1/n * xtx))) -
@@ -66,42 +39,6 @@ dicker_2014_estimator_2_sd = function(X, y) {
 		m1/(n*(n+1)*m2) * sum((t(gw) %*% y)^2)
 	hsq_est = tautilde2 / (sigmatilde2 + tautilde2)
 	return(c(hsq_est, tautilde2, sigmatilde2))
-}
-
-# Function that implements the dicker-1 estimator
-# @param genotypes: a genotype matrix with d columns and n rows, where d 
-#   is the number of markers and n is the number of individuals
-# @param phenotypes: a vector of phenotypes corresponding to phenotypes
-# 	of each individual in genotypes
-# @value: returns a vector of the estimate of H^2, tau2, and sigma^2
-#	in that order.
-dicker_2014_estimator_1 = function(genotypes, phenotypes) {
-	#Make some values
-	n = nrow(genotypes)
-	d = ncol(genotypes)
-	
-	#Center X
-	gw = apply(genotypes, 2, function(x) return((x - mean(x))))
-	
-	#Center y
-	phenotypes = phenotypes - mean(phenotypes)
-	
-	#Assume that the LD matrix is the identity
-	Shalf = diag(ncol(gw))
-	
-	xty = t(gw) %*% phenotypes
-	
-	if(rankMatrix(Shalf) == nrow(Shalf)) {
-		sigma = (d + n + 1)/(n * (n + 1)) * sum(phenotypes^2) - 1/(n*(n+1)) * sum((xty)^2)
-		tau = -d/(n*(n+1)) * sum(phenotypes^2) + 1/(n*(n+1)) * sum((xty)^2)
-		hsq_est = tau/(sigma+tau)
-	} else {
-		hsq_est= -1
-		sigma = -1
-		tau = -1
-	}
-	
-	return(c(hsq_est, tau, sigma))
 }
 
 # Function that implements the dicker-1 estimator
@@ -127,6 +64,7 @@ dicker_2014_estimator_1_sd = function(genotypes, phenotypes) {
 	
 	xty = t(gw) %*% phenotypes
 	
+	# Return the estimator from Dicker 2014
 	if(rankMatrix(Shalf) == nrow(Shalf)) {
 		sigma = (d + n + 1)/(n * (n + 1)) * sum(phenotypes^2) - 1/(n*(n+1)) * sum((xty)^2)
 		tau = -d/(n*(n+1)) * sum(phenotypes^2) + 1/(n*(n+1)) * sum((xty)^2)
@@ -185,7 +123,7 @@ schwartzman_2019_estimator = function(genotypes, phenotypes) {
 # 	of each individual in genotypes
 # @value: returns a vector of the estimate of H^2, sigmag^2, and sigmae^2
 #	in that order.
-elizabeth_MoM_no_diag = function(genotypes, phenotypes) {
+MoM_no_diag = function(genotypes, phenotypes) {
 	n_marker = ncol(genotypes)
 	n_indiv = nrow(genotypes)
 	
@@ -216,7 +154,7 @@ elizabeth_MoM_no_diag = function(genotypes, phenotypes) {
 # 	of each individual in genotypes
 # @value: returns a vector of the estimate of H^2, sigmag^2, and sigmae^2
 #	in that order.
-elizabeth_MoM_diag = function(genotypes, phenotypes) {
+MoM_diag = function(genotypes, phenotypes) {
 	n_marker = ncol(genotypes)
 	n_indiv = nrow(genotypes)
 	
