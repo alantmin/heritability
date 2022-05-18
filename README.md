@@ -16,10 +16,11 @@ The files are described below
 8. `markers1shuffle.txt`: This file provides SNPs from 1000 genomes in a random order that are filtered so that the minor allele frequency is greater than 0.05. 
 9. `collate_results.R`: This file looks through all of the folders that are output by the make_folders script and puts the results into one data frame. 
 10. `collate_results_cousins.R`: This file looks through all of the folders that are output by the make_folders script and puts the results into one data frame for the cousins data. 
-11. `plotresults.Rmd`: This is a RMarkdown file that makes plots given the data frame created by `collate_results.R`
-12. `likelihood.ipynb`: This is a python notebook with code used for generating the likelihood plots.
-13. `results.Rda`: This is a R data file with the output of `make_folders.R`
-14. `results_cousins.Rda`: This is a R data file with the output of `make_folders_cousins.R`
+11. `plotresults.Rmd`: This is a R Markdown file that makes plots given the data frame created by `collate_results.R`
+12. `plotresults_cousins.Rmd`: This is a R Markdown file that makes plots given the data frame created by `collate_results_cousins.R`
+13. `likelihood.ipynb`: This is a python notebook with code used for generating the likelihood plots.
+14. `results.Rda`: This is a R data file with the output of `make_folders.R`
+15. `results_cousins.Rda`: This is a R data file with the output of `make_folders_cousins.R`
 
 # Note LDAK, GCTA, and plink
 The `estimators.R` file requires that LDAK, GCTA, and plink can be run in the command line using 
