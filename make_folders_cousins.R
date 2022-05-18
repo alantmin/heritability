@@ -146,10 +146,10 @@ for(i in indexes) {
 		
 		# Calculate the haseman elston MoM estimator without including
 		# the diagonal
-		MoM_no_diag = MoM_no_diag(g, pheno$phenotypes)
+		MoM_no_diag_result = MoM_no_diag(g, pheno$phenotypes)
 		
 		# Calculate the haseman elston MoM estimator with the diagonal
-		MoM_diag = MoM_diag(g, pheno$phenotypes)
+		MoM_diag_result = MoM_diag(g, pheno$phenotypes)
 		
 		# Calculate the GCTA estimator 
 		gcta_maxlike = gcta(folder)
@@ -160,9 +160,9 @@ for(i in indexes) {
 		# Create a data frame with each of the estimators
 		# Where applicable, keep estimates of sigma_g, sigma_e, and hsq
 		names = c("gold_standard", "dicker2", "dicker1", "schwartzman", "MoM_no_diag", "MoM_diag", "gcta", "ldak")
-		result_hsq = c(gold_standard[1], dicker2[1], dicker1[1], schwartzman[1], MoM_no_diag[1], MoM_diag[1], gcta_maxlike[1], ldak_res[1])
-		sigmag = c(gold_standard[2], dicker2[2], dicker1[2], schwartzman[2], MoM_no_diag[2], MoM_diag[2], gcta_maxlike[2], ldak_res[2])
-		sigmae = c(gold_standard[3], dicker2[3], dicker1[3], schwartzman[3], MoM_no_diag[3], MoM_diag[3], gcta_maxlike[3], ldak_res[3])
+		result_hsq = c(gold_standard[1], dicker2[1], dicker1[1], schwartzman[1], MoM_no_diag_result[1], MoM_diag_result[1], gcta_maxlike[1], ldak_res[1])
+		sigmag = c(gold_standard[2], dicker2[2], dicker1[2], schwartzman[2], MoM_no_diag_result[2], MoM_diag_result[2], gcta_maxlike[2], ldak_res[2])
+		sigmae = c(gold_standard[3], dicker2[3], dicker1[3], schwartzman[3], MoM_no_diag_result[3], MoM_diag_result[3], gcta_maxlike[3], ldak_res[3])
 		df = data.frame(names, result_hsq, sigmae, sigmag, n, p, structure, param, iteration)
 		if(clean_up) {
 			system(paste("/bin/rm -r", get_file_name(n, p, structure, param, iteration, "*")))
