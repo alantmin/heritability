@@ -2,23 +2,8 @@
 title: "results"
 author: "Alan Min"
 date: "7/27/2020"
-output:
-  pdf_document: default
-  html_document: default
+output: html_document
 ---
-
-# Differences from plotresults2
-
-The only reason this is different from plotresults2 is that I changed the last figure to use facets instead of plot_grid
-
-# Structure
-
-Cousinship structure was changed to have larger blocks.
-
-![cousinships](cousinships1.jpeg)
-
-
-I simulated cousins from a model with no LD, and 400 individuals. I varied the number of markers between 400 and 8000, and repeated 1000 iterations. 
 
 ```{r, include = F}
 get_legend<-function(myggplot){
@@ -34,53 +19,44 @@ library(cowplot)
 knitr::opts_chunk$set(echo=FALSE, warning=FALSE, message=FALSE)
 ```
 
-# Estimates
 
 ```{r fig.width=12, fig.height = 4}
 yaxis = c(.4, 1.2)
 
-load("~/Documents/UW Documents/gcta_proj/Scripts/21_01_07_related_again/morecousins.Rda")
+# Load results from cousins data
+load("results_cousins.Rda")
 results = df
+
+# Rename some of the results 
 results$names = recode(results$names, elizabeth_no_diag = "HE", elizabeth_diag = "HE2")
 results = results %>% filter(names != "R_maxlike" & names != "schwartzman" & names != "HE2")
 results = results %>% mutate(names = factor(names, levels = c("HE", "dicker1", "dicker2", "gcta", "ldak", "gold_standard")))
+
+# Take the real part of the results. Although this doesn't happen here
+# taking eigenvalues can sometimes give an imaginary result
 results$result_hsq = Re(results$result_hsq)
 results$sigmae = Re(results$sigmae)
 results$sigmag = Re(results$sigmag)
 
-yaxis = c(.4, 1.2)
-for(cousin_structure in paste("cousin", c(0,1,2,3), sep = "")) {
-    print(ggplot(results %>% filter(structure == cousin_structure)) + geom_boxplot(aes(x = as.factor(p), y = result_hsq, col = names)) + coord_cartesian(ylim = yaxis)  + ggtitle(cousin_structure))
-}
+# Rename the levels of cousinship
+to_plot = results
+to_plot$structure = recode(results$structure, cousin0='(iv)', cousin1='(i)', cousin2='(ii)', cousin3='(iii)')
+to_plot = to_plot %>% mutate(structure = factor(structure, levels = c("(i)", "(ii)", "(iii)", "(iv)")))
+
+# Manually set colors for the estimators 
+colorscheme = c("#F8766D", "#BB9D00", "#00B81F", "#000000", "#00A5FF", "#E76BF3") 
+colorscheme = setNames(colorscheme, c( "HE", "dicker1", "dicker2", "gcta", "ldak", "gold_standard"))
+
+# Plot data for cousins
+ggplot(to_plot) + geom_boxplot(aes(x = as.factor(p), y = result_hsq, col = names)) + coord_cartesian(ylim = yaxis) + xlab("Number of Markers") + ylab("Heritability") + facet_grid(rows = vars(structure)) + theme(legend.position = "none", strip.background = element_blank(), strip.text.y.right = element_text(angle = 0)) + scale_color_manual(values = colorscheme, drop = T)
+ggsave(file = "related_estimates.pdf", height = 8, width = 8)
 ```
 
-# Standard Deviations of Estimators
-
 ```{r}
+# Plot MSE of each of the number of markers for cousinships
 plot_data = results %>%
 	group_by(names, p, structure) %>%
-	summarise(sd = sd(result_hsq), .groups = "keep")
-names(plot_data)[1] = "estimator"
-plot_data$structure = as.character(plot_data$structure)
-plot_data$structure[plot_data$structure == "cousin0"] = "unrelated"
-plot_data$structure[plot_data$structure == "cousin1"] = "1st Cousins"
-plot_data$structure[plot_data$structure == "cousin2"] = "2nd Cousins"
-plot_data$structure[plot_data$structure == "cousin3"] = "3rd Cousins"
-plot_data$structure = as.character(plot_data$structure)
-plot_data$structure[plot_data$structure == "cousin0"] = "unrelated"
-names(plot_data)[3] = "relatedness"
-
-print(ggplot(plot_data) + geom_line(aes(x = p, y = sd, col = estimator, linetype = relatedness)) + coord_cartesian(ylim = c(0, .3)) + ggtitle("Number of Markers by Relatedness") + scale_linetype_manual(breaks=c("1st Cousins","2nd Cousins", "3rd Cousins", "unrelated"), values=c(3,2,6,1)) + xlab("Number of Markers"))
-#ggsave("~/Documents/UW Documents/gcta_proj/Scripts/21_01_07_related_again/sd_by_relatedness.pdf", width = 7, height = 5)
-
-```
-
-# This plots MSE instead of sqrt
-
-```{r}
-plot_data = results %>%
-	group_by(names, p, structure) %>%
-	summarise(mse = sqrt(sum((result_hsq - .8)^2)/length(result_hsq)), .groups = "keep")
+	summarise(MSE = sqrt(sum((result_hsq - .8)^2)/length(result_hsq)), .groups = "keep")
 names(plot_data)[1] = "estimator"
 plot_data$structure = as.character(plot_data$structure)
 plot_data$structure[plot_data$structure == "cousin0"] = "unrelated"
@@ -89,29 +65,12 @@ plot_data$structure[plot_data$structure == "cousin2"] = "2nd Cousins"
 plot_data$structure[plot_data$structure == "cousin3"] = "3rd Cousins"
 names(plot_data)[3] = "relatedness"
     
-print(ggplot(plot_data) + geom_line(aes(x = p, y = mse, col = estimator, linetype = relatedness)) + coord_cartesian(ylim = c(0, .3)) + ggtitle("Number of Markers by Relatedness") + scale_linetype_manual(breaks=c("1st Cousins","2nd Cousins", "3rd Cousins", "unrelated"), values=c(3,2,6,1)) + xlab("Number of Markers"))
-ggsave("~/Documents/UW Documents/gcta_proj/Scripts/21_01_07_related_again/mse_by_relatedness.pdf", width = 7, height = 5)
+print(ggplot(plot_data) + geom_line(aes(x = p, y = MSE, col = estimator, linetype = relatedness)) + coord_cartesian(ylim = c(0, .3)) + ggtitle("Number of Markers by Relatedness") + scale_linetype_manual(breaks=c("1st Cousins","2nd Cousins", "3rd Cousins", "unrelated"), values=c(3,2,6,1)) + xlab("Number of Markers") + scale_color_manual(values = colorscheme, drop = T))
+ggsave("~/Documents/UW Documents/gcta_proj/Scripts/21_03_01_relatededits20_12_20/mse_by_relatedness.pdf", width = 7, height = 5)
 
 ```
 
 
-```{r, include=FALSE, eval=FALSE}
-yaxis = c(.4, 1.2)
 
-to_plot = results
-to_plot$structure = recode(results$structure, cousin0='(iv)', cousin1='(i)', cousin2='(ii)', cousin3='(iii)')
-to_plot = to_plot %>% mutate(structure = factor(structure, levels = c("(i)", "(ii)", "(iii)", "(iv)")))
 
-ggplot(to_plot) + geom_boxplot(aes(x = as.factor(p), y = result_hsq, col = names)) + coord_cartesian(ylim = yaxis) + xlab("Number of Markers") + ylab(bquote("Estimated H"^2)) + facet_grid(rows = vars(structure)) + theme(legend.position = "none") 
 
-ggsave(file = "~/Documents/UW Documents/gcta_proj/Scripts/21_01_07_related_again/estimates.pdf", height = 8, width = 8)
-```
-
-# Table of how many values were included in each level
-
-This is a relative number of how complete each simulation was. The value "var1" is the number of markers that were in that simulation.
-
-```{r}
-library(knitr)
-kable(table(results$p))
-```

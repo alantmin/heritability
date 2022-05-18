@@ -55,6 +55,7 @@ settings = data.frame(n = n_vec,
 
 l = list()
 counter = 1
+# Go through each of the settings and retrieve the data
 for(i in 1:nrow(settings)) {
 	n = settings$n[i]
 	p = settings$p[i]
@@ -62,6 +63,7 @@ for(i in 1:nrow(settings)) {
 	param = 0
 	iteration = settings$iteration[i]
 	
+	# Folder structures are made using the get_file_name function
 	if(file.exists(get_file_name(n, p, structure, param, iteration, "heritability_results.Rda"))) {
 		load(get_file_name(n, p, structure, param, iteration, "heritability_results.Rda"))
 		l[[counter]] = df
@@ -72,4 +74,9 @@ for(i in 1:nrow(settings)) {
 	}
 	print(i)
 }
+
+# Combine results from each of the files 
 df = do.call(rbind, l)
+
+# Save results
+save(df, "results_cousins.Rda")
