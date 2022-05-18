@@ -101,3 +101,6 @@ for(i in 1:nrow(settings)) {
 
 # Combine results from each of the files 
 df = do.call(rbind, l)
+
+# Save results
+save(df, file = "results.Rda")
