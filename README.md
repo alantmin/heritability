@@ -19,8 +19,8 @@ The files are described below
 6. `simulation3.R`: This file uses the simulation functions to simulate genotypes and phenotypes using different levels of relatedness, then outputs a folder with results of the estimated values of heritability for various estimators. 
 8. `simulation1_collate_results.R`: This file looks through all of the folders that are output by the simulation1 script and puts the results into one data frame. 
 9. `simulation3_collate_results.R`: This file looks through all of the folders that are output by the simulation2 script and puts the results into one data frame for the cousins data. 
-10. `plotresults.Rmd`: This is a R Markdown file that makes plots given the data frame created by `collate_results.R`
-11. `plotresults_cousins.Rmd`: This is a R Markdown file that makes plots given the data frame created by `collate_results_cousins.R`
+10. `simulation1_plotresults.Rmd`: This is a R Markdown file that makes plots given the data frame created by `collate_results.R`
+11. `simulation3_plotresults.Rmd`: This is a R Markdown file that makes plots given the data frame created by `collate_results_cousins.R`
 13. `simulation1_results.Rda`: This is a R data file with the output of `simulation1.R`
 14. `simulation3_results.Rda`: This is a R data file with the output of `simulation3.R`
 7. `markers1shuffle.txt`: This file provides SNPs from 1000 genomes in a random order that are filtered so that the minor allele frequency is greater than 0.05.
