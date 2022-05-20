@@ -49,9 +49,9 @@ done
 Rscript simulation1_collate_results.R
 ```
 
-Then figures can be produced the R Markdown file in simulation1_plotresults.Rmd
+Then figures can be produced the R Markdown file in `simulation1_plotresults.Rmd`
 
-Likewise, for simulation 2
+Likewise, for simulation 3, the figures can be reproduced using the following
 
 ```
 for i in {1..60}; do
@@ -61,3 +61,6 @@ done
 Rscript simulation3_collate_results.R
 ```
 
+and figures can produced in the R Markdown file `simulation3_plotresults.Rmd`
+
+The simulations and plots for simulation 2 are encapsulated in a jupyter notebook in `simulation2.ipynb`
