@@ -1,6 +1,10 @@
 # Introduction
 
-These are files used in the publication of Comparing Heritability Estimators under Alternative Structures of Linkage Disequilibrium by Min, Basu, and Thompson (2022).
+These are files used in the publication of
+
+Min, Alan, Elizabeth A. Thompson, and Saonli Basu. "Comparing Heritability Estimators under Alternative Structures of Linkage Disequilibrium." bioRxiv (2021)
+
+which is available at https://www.biorxiv.org/content/10.1101/2021.09.08.459523v1. 
 
 The code assumes that `GCTA` (https://yanglab.westlake.edu.cn/software/gcta/), `LDAK` (https://dougspeed.com/ldak/), and `plink` are installed (https://zzz.bwh.harvard.edu/plink/).
 
@@ -10,17 +14,16 @@ The files are described below
 2. `gcta.R`: This file includes helper functions to run GCTA
 3. `genotypes_cor.R`: This file provides functions to simulate genotypes with correlation structures. 
 4. `genotypes_related.R`: This file provide functions to simulate genotypes with different levels of cousinship.
-5. `make_folders.R`: This file uses the simulation functions to simulate genotypes and phenotypes using different correlation structures, then outputs a folder with results of the estimated values of heritability for various estimators.
-6. `make_folders_cousins.R`: This file uses the simulation functions to simulate genotypes and phenotypes using different levels of relatedness, then outputs a folder with results of the estimated values of heritability for various estimators.
-7. `make_folders_cousins.R`: This file uses uses simulation functions to simulate genotypes and phenotypes using different levels of cousinships, then outputs a folder with results of the estimated values of heritability for various estimators. 
-8. `markers1shuffle.txt`: This file provides SNPs from 1000 genomes in a random order that are filtered so that the minor allele frequency is greater than 0.05. 
-9. `collate_results.R`: This file looks through all of the folders that are output by the make_folders script and puts the results into one data frame. 
-10. `collate_results_cousins.R`: This file looks through all of the folders that are output by the make_folders script and puts the results into one data frame for the cousins data. 
-11. `plotresults.Rmd`: This is a R Markdown file that makes plots given the data frame created by `collate_results.R`
-12. `plotresults_cousins.Rmd`: This is a R Markdown file that makes plots given the data frame created by `collate_results_cousins.R`
-13. `likelihood.ipynb`: This is a python notebook with code used for generating the likelihood plots.
-14. `results.Rda`: This is a R data file with the output of `make_folders.R`
-15. `results_cousins.Rda`: This is a R data file with the output of `make_folders_cousins.R`
+5. `simulation1.R`: This file uses the simulation functions to simulate genotypes and phenotypes using different correlation structures, then outputs a folder with results of the estimated values of heritability for various estimators.
+6. `simulation3.R`: This file uses the simulation functions to simulate genotypes and phenotypes using different levels of relatedness, then outputs a folder with results of the estimated values of heritability for various estimators.
+7. `markers1shuffle.txt`: This file provides SNPs from 1000 genomes in a random order that are filtered so that the minor allele frequency is greater than 0.05. 
+8. `collate_results.R`: This file looks through all of the folders that are output by the simulation1 script and puts the results into one data frame. 
+9. `collate_results_cousins.R`: This file looks through all of the folders that are output by the simulation2 script and puts the results into one data frame for the cousins data. 
+10. `plotresults.Rmd`: This is a R Markdown file that makes plots given the data frame created by `collate_results.R`
+11. `plotresults_cousins.Rmd`: This is a R Markdown file that makes plots given the data frame created by `collate_results_cousins.R`
+12. `likelihood.ipynb`: This is a python notebook with code used for generating the likelihood plots.
+13. `simulation1_results.Rda`: This is a R data file with the output of `simulation1.R`
+14. `simulation3_results.Rda`: This is a R data file with the output of `simulation3.R`
 
 # Note LDAK, GCTA, and plink
 The `estimators.R` file requires that LDAK, GCTA, and plink can be run in the command line using 
@@ -30,20 +33,31 @@ The `estimators.R` file requires that LDAK, GCTA, and plink can be run in the co
 gcta64
 plink
 ```
-respectively. These can be updated in the source code in the `make_folders.R` (line 121) and `estimators.R` (line 216, 217, 195-198).
+respectively.
 
 # Usage 
 
-To run a subset of the settings, use the command 
+The scripts `simulation1.R` and `simulation3.R` first create a data frame with a list of parameters to test. They each take as input an integer `i` which determines which subset of the parameters are simulated. Results of the simulations are then stored in a folder structure in the same directory. 
+
+For simulation 1, the sequence of commands to reproduce the figures is as follows
 
 ```
-Rscript make_folders.R <i>
+for i in {1..600}; do
+	Rscript simulation1.R $i
+done 
+
+Rscript simulation1_collate_results.R
 ```
 
-or 
+Then figures can be produced the R Markdown file in simulation1_plotresults.Rmd
+
+Likewise, for simulation 2
 
 ```
-Rscript make_folders_cousins.R <i>
+for i in {1..60}; do
+	Rscript simulation3.R $i
+done 
+
+Rscript simulation3_collate_results.R
 ```
 
-Where `i` is the index of the subset of parameters to run. By default, these commands run 50 of the selected parameters.
